@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from 'bcrypt';
 import User from "../Models/User.js";
 import { isPasswordCorrect, validateMailAddress } from "./validatorController.js";
-import { saveUserId } from "../Models/Number.js";
+
 
 
 export const signUp = async (req,res) => {
@@ -28,7 +28,7 @@ export const signUp = async (req,res) => {
                 return res.status(400).send("Password must be at least 8 characters long, contain at least one letter, one special character, and at least one number");
             }
 
-            if( !validateMailAddress(email) )
+            if(!validateMailAddress(email))
             {
                 console.log("email is not correct");
                 return res.status(400).send("Invalid email please try again! \n notice that email must be in format of  example@example.com");
@@ -36,7 +36,7 @@ export const signUp = async (req,res) => {
             const hashedPassword = await bcrypt.hash(password, 10);
             console.log(hashedPassword);
             await User.create({userName:userName, password: hashedPassword,email: email,isFemale: isFemale});
-            res.status(201).send("User created successfully");
+            res.status(200).send("signed up successfully, go to login page");
         }
     } catch (err) {
         console.log(err);
@@ -61,7 +61,7 @@ export const LogIn = async (req,res) => {
         const user = await User.findOne({ userName });
         if (!user) {
             console.log("User not found");
-            return res.status(404).send( "The user was not found");
+            return res.status(404).send( "The user was not found, please try again or go to sign up page");
         }
         else{
             console.log("User found");
