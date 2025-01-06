@@ -68,16 +68,25 @@ export const LogIn = async (req,res) => {
             const samePassword = await bcrypt.compare(password, user.password);
             console.log(samePassword);
             if(!samePassword) 
-                res.status(404).send("The password or the user name are not correct, please sign in or try again");
+            {
+                return res.status(404).send("The password or the user name are not correct, please sign in or try again");
+            }
     
             const token= jwt.sign({userName: userName}, process.env.SECRET_KEY, { expiresIn: '24h',issuer: 'http://localhost:8080'});
-            res.cookie('jwt', token, {httpOnly: true, maxAge: 90000}).send("Logged in successfully");
-            res.json(user);
+            res.cookie('jwt', token, {httpOnly: true, maxAge: 90000});
+            return res.send(user);
         }
     }catch(err) {
         console.log(err);
-        res.status(500).send("error");
+       return res.status(500).send("error");
     }
+    // const { userName, password } = req.body;
+    // const user ={userName, password};
+    // const token= jwt.sign({userName: userName}, process.env.SECRET_KEY, { expiresIn: '24h',issuer: 'http://localhost:8080'});
+    // res.cookie('jwt', token, {httpOnly: true, maxAge: 90000});
+    // return res.send(user);
+
+
 }
 
 export const verifyToken = (req,res) => {
