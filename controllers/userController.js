@@ -89,14 +89,20 @@ export const LogIn = async (req,res) => {
 
 }
 
-export const verifyToken = (req,res) => {
+export const verifyToken = async(req,res) => {
     const token = req.cookies.jwt; //שליפה של הטוקן ממאגר הקוקיז
     if(!token) 
         return res.status(401).send('Access denied');
-
-    const isVerify=jwt.verify(token, process.env.JWT_SECRET,{issuer: 'http://localhost:8080'})
+    try{
+        const isVerify=jwt.verify(token, process.env.JWT_SECRET,{issuer: 'http://localhost:8080'})
         if(!isVerify) 
             return res.status(403).send('Access denied');
-        res.send();
+        return res.status(200).send("can access");
     }
+    catch(err){
+        console.log(err);
+        return res.status(500).send("Server error: " + err.message);
+    }
+}
+    
 
