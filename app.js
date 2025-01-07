@@ -8,7 +8,7 @@ import bodyParser from "body-parser";
 import http from 'http';
 import { Server } from "socket.io";
 import { verifyToken } from './controllers/userController.js';
-import {socketMW} from 'appSocketMW.js';
+import {socketMW} from './appSocketExt.js';
 // import { memoryGame } from './memoryGame-socket.js';
 const app = express();
 const server=http.createServer(app);

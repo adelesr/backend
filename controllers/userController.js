@@ -86,22 +86,22 @@ export const LogIn = async (req,res) => {
     // res.cookie('jwt', token, {httpOnly: true, maxAge: 90000});
     // return res.send(user);
 
-
 }
 
-export const verifyToken = async(req,res) => {
+export const verifyToken = async(req,res,next) => {
     const token = req.cookies.jwt; //שליפה של הטוקן ממאגר הקוקיז
     if(!token) 
-        return res.status(401).send('Access denied');
+        return res.json({message: 'Invalid token', status: false});
     try{
         const isVerify=jwt.verify(token, process.env.JWT_SECRET,{issuer: 'http://localhost:8080'})
         if(!isVerify) 
-            return res.status(403).send('Access denied');
-        return res.status(200).send("can access");
+            return res.status(403).json({message: 'Invalid token', status: false});
+
+        next();
     }
     catch(err){
         console.log(err);
-        return res.status(500).send("Server error: " + err.message);
+        return res.send({message: 'Invalid token', status: false});
     }
 }
     

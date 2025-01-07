@@ -1,3 +1,4 @@
+import { response } from 'express';
 import {io} from './app.js';
 import { verifyToken } from './controllers/userController.js';
 
@@ -17,8 +18,6 @@ const shuffleArray = (array) => {
 
 
    export const socketMW=()=>{
-        const isConnected = verifyToken(socketMW)
-        verifyToken().then(()=>{
         io.on("connection",(socket) => {
             console.log(`user connected in socket number ${socket.id}`);
             socket.on("sendMessage",(message,room)=> {
@@ -46,13 +45,34 @@ const shuffleArray = (array) => {
                 // פה אדל שמה את הקוד שלה        
         
             // }
-            
-            
-        })
-    }).catch(err => {
-        console.log(err);
-        router.route('/login').post(LogIn);
-    })
+            socket.on('join-game',(chatId,currentUser)=>{
+                const room=`0${chatId}`;
+                if(rooms.has(room)){
+                    const cell=rooms.get(room);
+                    if(cell[0]===currentUser && cell[1]===null){ //אם היוזר הנוכחי הוא השחקן הראשון שנכנס
+                        io.to(room).emit("loading");
+                    }
+                    else if((cell[0]!=currentUser && cell[0]!=null) && cell[1]===null) //  השני אם נכנס 
+                    {
+                        cell[1]=currentUser
+                        io.to(room).emit("gameStart","game start",memoryCards,cell[0],cell[1] ); //מחזיר את היוזרים
+                        console.log(cell[0],cell[1]);
+                        res.status(200);
+                    }
+                }
+                else{
+                    rooms.add({[room]:[currentUser,null]});
+                    memoryCards=MemoryCard.toArray();
+                    memoryCards=shuffleArray(memoryCards);
+        
+                } })//מכיל אובייקט שהKEY הוא החדר והValue הוא מערך של יוזרים שמשתתפים
+        
+                socket.on('currentGuess',(card1,card2)=>{
+                    memoryCards.splice(memoryCards.indexOf(card1),1);
+                    memoryCards.splice(memoryCards.indexOf(card2),1);
+                    io.to(room).emit('updateCards',memoryCards);
+               })
+            })
     
 }
 
@@ -68,52 +88,58 @@ const shuffleArray = (array) => {
 
 
     // export const enterToGame=()=> {
-io.on('connection', (socket) => {
-        console.log(`User connected: ${socket.id}`);
-        //בר עמוס
-        socket.on("sendMessagesToEveryone",(message)=> {
-            const messageObject = {
-                userObject:message.userObject,
-                messageId: Date.now(),
-                timeSent: new Date(Date.now()).toLocaleTimeString('en-US',{
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false}),
-                content:message.userMsg
-            }
-            // messagesHistory = [...messagesHistory,messageObject];
-            io.emit("receiveMessage",messageObject)
+// io.on('connection', (socket) => {
+//         console.log(`User connected: ${socket.id}`);
+//         //בר עמוס
+//         socket.on("sendMessagesToEveryone",(message)=> {
+//             const messageObject = {
+//                 userObject:message.userObject,
+//                 messageId: Date.now(),
+//                 timeSent: new Date(Date.now()).toLocaleTimeString('en-US',{
+//                     hour: '2-digit',
+//                     minute: '2-digit',
+//                     hour12: false}),
+//                 content:message.userMsg
+//             }
+//             // messagesHistory = [...messagesHistory,messageObject];
+//             io.emit("receiveMessage",messageObject)
 
             
-    socket.on('join-game',(chatId,currentUser)=>{
-        const room=`0${chatId}`;
-        if(rooms.has(room)){
-            const cell=rooms.get(room);
-            if(cell[0]===currentUser && cell[1]===null){ //אם היוזר הנוכחי הוא השחקן הראשון שנכנס
-                io.to(room).emit("loading");
-            }
-            else if((cell[0]!=currentUser && cell[0]!=null) && cell[1]===null) //  השני אם נכנס 
-            {
-                cell[1]=currentUser
-                io.to(room).emit("gameStart","game start",memoryCards,cell[0],cell[1] ); //מחזיר את היוזרים
-                console.log(cell[0],cell[1]);
-                res.status(200);
-            }
-        }
-        else{
-            rooms.add({[room]:[currentUser,null]});
-            memoryCards=MemoryCard.toArray();
-            memoryCards=shuffleArray(memoryCards);
+//     socket.on('join-game',(chatId,currentUser)=>{
+//         const room=`0${chatId}`;
+//         if(rooms.has(room)){
+//             const cell=rooms.get(room);
+//             if(cell[0]===currentUser && cell[1]===null){ //אם היוזר הנוכחי הוא השחקן הראשון שנכנס
+//                 io.to(room).emit("loading");
+//             }
+//             else if((cell[0]!=currentUser && cell[0]!=null) && cell[1]===null) //  השני אם נכנס 
+//             {
+//                 cell[1]=currentUser
+//                 io.to(room).emit("gameStart","game start",memoryCards,cell[0],cell[1] ); //מחזיר את היוזרים
+//                 console.log(cell[0],cell[1]);
+//                 res.status(200);
+//             }
+//         }
+//         else{
+//             rooms.add({[room]:[currentUser,null]});
+//             memoryCards=MemoryCard.toArray();
+//             memoryCards=shuffleArray(memoryCards);
 
-        } })//מכיל אובייקט שהKEY הוא החדר והValue הוא מערך של יוזרים שמשתתפים
+//         } })//מכיל אובייקט שהKEY הוא החדר והValue הוא מערך של יוזרים שמשתתפים
 
-        socket.on('currentGuess',(card1,card2)=>{
-            memoryCards.splice(memoryCards.indexOf(card1),1);
-            memoryCards.splice(memoryCards.indexOf(card2),1);
-            io.to(room).emit('updateCards',memoryCards);
-       })
-    })
-})
+//         socket.on('currentGuess',(card1,card2)=>{
+//             memoryCards.splice(memoryCards.indexOf(card1),1);
+//             memoryCards.splice(memoryCards.indexOf(card2),1);
+//             io.to(room).emit('updateCards',memoryCards);
+//        })
+//     })
+// })
+
+
+
+
+
+
     // io.on('connection', (socket) => {
     //     let memoryCards=[];
     //     console.log('user connected');
